@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<script type="text/javascript" src="./maze.js"></script>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+</body>
+<script type="text/javascript">
+    class Point{
+	constructor(x,y){
+		this.x = x;
+		this.y = y;
+	}
+	toString(){
+		return '(' + this.x + ',' + this.y + ')';
+	}
+    }
+    var DrawTool = {}
+    DrawTool.canvas = document.getElementById("canvas");
+    DrawTool.ctx = DrawTool.canvas.getContext("2d");
+    DrawTool.iniCanvas = function(width=800,height=600){
+        this.width = width;
+        this.height = height;
+        this.canvas.width = width;
+        this.canvas.height = height;
+    }
+    DrawTool.line = function(p1,p2,width=0.5,color="000000"){
+         this.ctx.moveTo(p1.x,p1.y);
+         this.ctx.lineTo(p2.x,p2.y);
+         this.ctx.strokeStyle=color;
+         this.ctx.lineWidth=width;
+    }
+    DrawTool.clear = function(){
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+    DrawTool.beginPath = function(){
+         this.ctx.beginPath();
+    }
+    DrawTool.fillCycle = function(rx,ry,radius){
+         this.beginPath();
+         this.ctx.arc(rx, ry, radius, 0, Math.PI*2, true);
+         this.stroke();
+    }
+    DrawTool.stroke = function(){
+         this.ctx.stroke();
+    }
+    DrawTool.drawCycle = function(x,y,radius,color='#0000ff'){
+        var colorObj = DrawTool.ctx.createRadialGradient(x-radius/1.8,y-radius/1.8,0,x,y,radius);
+        colorObj.addColorStop(0,"#FFFFFF");
+        colorObj.addColorStop(1,color);
+        DrawTool.ctx.fillStyle = colorObj;
+        DrawTool.fillCycle(x,y,radius);
+        DrawTool.ctx.fill();
+    }
+
+    DrawBox = {};
+    DrawBox.initBox = function(columnNum,rowNum){
+    	this.columnNum = columnNum;
+    	this.rowNum = rowNum;
+    }
+    DrawBox.drawLayOut = function(){
+         DrawTool.beginPath();
+         var columnNum = this.columnNum;
+         var rowNum = this.rowNum;
+         var width = DrawTool.width;
+         var height = DrawTool.height;
+         this.columnWidth = Math.floor(width/columnNum);
+         this.rowWidth = Math.floor(height/rowNum);
+         for(var i=0;i<=columnNum;i++){
+                 var p1 = new Point(i*this.columnWidth,0);
+                 var p2 = new Point(i*this.columnWidth,height);
+                 DrawTool.line(p1,p2);
+         }
+         for(var i=0;i<=rowNum;i++){
+                 var p1 = new Point(0,i*this.rowWidth);
+                 var p2 = new Point(width,i*this.rowWidth);
+                 DrawTool.line(p1,p2);
+         }
+         DrawTool.stroke();
+    }
+    DrawBox.getLocation = function(x,y){
+    	 return {x:x*this.columnWidth,y:y*this.rowWidth}
+    }
+    DrawBox.drawCycle = function(x,y){
+    	var location = this.getLocation(x,y);
+    	DrawTool.drawCycle(location.x,location.y,5)
+    }
+    DrawBox.drawLine = function(loc1,loc2){
+    	let pic_loc1 = this.getLocation(loc1.x,loc1.y);
+    	let pic_loc2 = this.getLocation(loc2.x,loc2.y);
+    	DrawTool.beginPath();
+    	DrawTool.line(pic_loc1,pic_loc2,4);
+    	DrawTool.stroke();
+    }
+    DrawBox.fillRect = function(x,y,color='red'){
+    	 var width = DrawTool.width / DrawBox.columnNum;
+    	 var height = DrawTool.height / DrawBox.rowNum;
+    	 DrawTool.ctx.fillStyle = color;
+    	 DrawTool.ctx.fillRect(x*width,y*height,width,height);
+    }
+    let maze = new Maze(40,30)
+    maze.dfs(0,0)
+    var bluePrint = maze.bluePrint;
+    DrawTool.iniCanvas();
+    DrawBox.initBox(40,30);
+    DrawBox.drawLayOut();
+    // DrawBox.drawCycle(5,5);
+    // DrawBox.drawLine({x:0,y:0},{x:0,y:1})
+    var index = 0;
+    DrawBox.drawCycle(bluePrint[index][0],bluePrint[index][1]);
+    setInterval(()=>{
+    	var second = index + 1;
+    	if(second>=bluePrint.length){
+    		return;
+    	}
+    	DrawBox.drawCycle(bluePrint[second][0],bluePrint[second][1]);
+    	DrawBox.drawLine({x:bluePrint[index][0],y:bluePrint[index][1]},{x:bluePrint[second][0],y:bluePrint[second][1]});
+    	index = second;
+    },1000)
+
+</script>
+</html>
