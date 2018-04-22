@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+</body>
+    <script type="text/javascript" src="./statics.js"></script>
+	<script type="text/javascript">
+    var colorList = [
+       '#C1232B','#B5C334','#00CE10','#0000ff','#27727B',
+       '#FE8463','#9BCA63','#000000','#F3A43B','#60C0DD',
+       '#D7504B','#C6E579','#F4E001','#F0805A','#26C0C0'
+       ];
+     function getRandColor(){
+        return  colorList[Math.floor((Math.random()*colorList.length))];
+     }
+    class Point{
+        constructor(index,x,y){
+            this.index = index
+            this.x = x
+            this.y = y
+        }
+        setIndex(index){
+            this.index = index
+        }
+        getLocation(){
+            return {x:this.x,y:this.y}
+        }
+    }
+    var DrawTool = {}
+    DrawTool.canvas = document.getElementById("canvas");
+    DrawTool.ctx = DrawTool.canvas.getContext("2d");
+    DrawTool.iniCanvas = function(width=1800,height=1600){
+        this.width = width;
+        this.height = height;
+        this.canvas.width = width;
+        this.canvas.height = height;
+        this.ctx.fillStyle = '#0000'
+        // this.ctx.fillRect(0,0,width,height)
+    }
+    DrawTool.line = function(p1,p2,width=1,color="#000000"){
+         this.ctx.moveTo(p1.x,p1.y);
+         this.ctx.lineTo(p2.x,p2.y);
+         this.ctx.strokeStyle=color;
+         this.ctx.lineWidth=width;
+    }
+    DrawTool.drawLine = function(p1,p2){
+    	this.beginPath()
+    	this.line(p1,p2)
+    	this.stroke()
+    }
+    DrawTool.clear = function(){
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+    DrawTool.beginPath = function(){
+         this.ctx.beginPath();
+    }
+    DrawTool.fillCycle = function(rx,ry,radius){
+         this.beginPath();
+         this.ctx.arc(rx, ry, radius, 0, Math.PI*2, true);
+         this.stroke();
+    }
+    DrawTool.drawCycle = function(x,y,radius,color='#0000ff'){
+        var colorObj = DrawTool.ctx.createRadialGradient(x-radius/1.8,y-radius/1.8,0,x,y,radius);
+        colorObj.addColorStop(0,"#FFFFFF");
+        colorObj.addColorStop(1,color);
+        DrawTool.ctx.fillStyle = colorObj;
+        DrawTool.fillCycle(x,y,radius);
+        DrawTool.ctx.fill();
+    }
+    const paraYBase = (x,lineLen)=>{
+        return 0.3/lineLen*x*(x-lineLen)*(-1)
+    }
+    const baseRotate = (x,y,alpha)=>{
+        let new_x = x*Math.cos(alpha) - y*Math.sin(alpha)
+        let new_y = x*Math.sin(alpha) + y*Math.cos(alpha)
+        return {x:new_x,y:new_y}
+    }
+    DrawTool.drawParaCurv = function(p_start,p_end){
+        const len_x = Math.abs(p_start.x - p_end.x)
+        const x0 = p_start.x
+        const x1 = p_end.x
+        const y0 = p_start.y
+        // const y1 = p_end.y
+        this.beginPath()
+        const n = 100
+        this.ctx.moveTo(p_start.x,p_start.y);
+        let alpha = Math.atan((p_start.y-p_end.y)/(p_start.x - p_end.x))
+        for(let i=1;i<=n;i++){
+            let x = len_x/n*i+x0
+            let y = paraYBase(x-x0,len_x)+y0
+            let new_loc = baseRotate(x-x0,y-y0,alpha)
+            this.ctx.lineTo(new_loc.x+x0,new_loc.y+y0)
+        }
+        this.stroke()
+    }
+    DrawTool.drawCycleByPoint = function(p,radius,color='#0000ff'){
+        this.drawCycle(p.x,p.y,radius,color)
+    }
+    DrawTool.fillText = function(x,y,text){
+    	this.ctx.fillText(x,y,text)
+    }
+    DrawTool.stroke = function(){
+         this.ctx.stroke();
+    }
+    DrawTool.fillRect = function(x,y,width,height,color='#000000'){
+         this.ctx.fillStyle = color
+         this.ctx.fillRect(x,y,width,height)
+    }
+    DrawTool.drawGraph = function(x0,y0,width,height,arr){
+         let n  = arr.length
+         let  w = width/n
+         for(let i=0;i<n;i++){
+            let x_val = x0 + i*w
+            let h = arr[i]*height
+            let y_val = y0 - h
+            this.fillRect(x_val,y_val,w,h,colorList[i])
+         }
+    }
+    arr = outputArr
+    DrawTool.iniCanvas()
+    DrawTool.drawGraph(500,1000,300,1000,arr);
+	</script>
+</html>
